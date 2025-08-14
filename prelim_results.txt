@@ -1,0 +1,29 @@
+Llama-3-8B-Instruct
+
+GENDER BBQ: 
+Ambiguous Prompts, NO COT 
+2830 examples
+Input data: "bbqPrompts_ambig_no_cot.csv"
+Output: "final_project/COMP_598_Final_Project/ambig_no_COT_prelim_results.csv"
+Accuracy: 1053/2836 = 37.13%
+
+Ambiguous Prompts with COT 
+2830 examples
+Input data: "bbqPrompts_ambig_cot.csv"
+Output: "ambig_COT_prelim_results.csv"
+Accuracy: 1511/2836 = 53.28%
+
+Disambiguous Prompts NO COT 
+2830 examples
+Input data: "bbqPrompts_disambig_no_cot.csv"
+Output: "disambig_no_COT_prelim_results.csv"
+Accuracy: 2432/2836 = 85.75%
+
+
+Disambiguous Prompts COT 
+2830 examples
+Input data: "bbqPrompts_disambig_cot.csv"
+Output: "disambig_COT_prelim_results.csv"
+Accuracy: 2493/2836 = 87.91%
+
+
