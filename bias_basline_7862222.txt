@@ -1,0 +1,87 @@
+Running pipeline for model: Meta-Llama-3.1-8B-Instruct
+Model path: /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
+Sample size: 20
+Job ID: 7862222
+Node: cn-a007
+Loading model from: /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
+Model name: Meta-Llama-3.1-8B-Instruct
+Model successfully accessed from cluster.
+
+============================================================
+Processing: Gender Ambig No Cot
+============================================================
+Sampling 20 rows from 2836 total rows
+
+Completed in 0.07 minutes (0.20s per prompt)
+✓ Saved to: data/Meta-Llama-3.1-8B-Instruct_responses_gender_ambig_no_cot.csv
+
+
+============================================================
+Processing: Gender Ambig Cot
+============================================================
+Sampling 20 rows from 2836 total rows
+
+Completed in 0.05 minutes (0.16s per prompt)
+✓ Saved to: data/Meta-Llama-3.1-8B-Instruct_responses_gender_ambig_cot.csv
+
+
+============================================================
+Processing: Gender Disambig No Cot
+============================================================
+Sampling 20 rows from 2836 total rows
+
+Completed in 0.06 minutes (0.17s per prompt)
+✓ Saved to: data/Meta-Llama-3.1-8B-Instruct_responses_gender_disambig_no_cot.csv
+
+
+============================================================
+Processing: Gender Disambig Cot
+============================================================
+Sampling 20 rows from 2836 total rows
+
+Completed in 0.06 minutes (0.18s per prompt)
+✓ Saved to: data/Meta-Llama-3.1-8B-Instruct_responses_gender_disambig_cot.csv
+
+
+All datasets processed, cheers!
+
+======== GPU REPORT ========
+
+==============NVSMI LOG==============
+
+Timestamp                                 : Wed Oct  8 12:30:14 2025
+Driver Version                            : 580.82.07
+CUDA Version                              : 13.0
+
+Attached GPUs                             : 1
+GPU 00000000:89:00.0
+    Accounting Mode                       : Enabled
+    Accounting Mode Buffer Size           : 4000
+    Accounted Processes
+        Process ID                        : 738474
+            GPU Utilization               : 46 %
+            Memory Utilization            : 40 %
+            Max memory usage              : 16658 MiB
+            Time                          : 31193 ms
+            Is Running                    : 0
+
+Wed Oct  8 12:30:14 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Quadro RTX 8000                On  |   00000000:89:00.0 Off |                    0 |
+| 34%   42C    P2             97W /  260W |       1MiB /  46080MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
