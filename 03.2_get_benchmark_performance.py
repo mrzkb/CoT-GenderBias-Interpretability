@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 import argparse
 import os
+from sklearn.metrics import f1_score
 
 # example_id | question_polarity | context_condition | prompt | answer_texts | answer_label | bias_label | unknown_label | response
 
@@ -14,7 +15,8 @@ def get_counts(df):
             "correct": correct,
             "accuracy": correct / total if total > 0 else 0,
             "n_non_unknown": (df['predicted_answer'] != df['unknown_label']).sum(),
-            "n_biased": (df['predicted_answer'] == df['bias_label']).sum()
+            "n_biased": (df['predicted_answer'] == df['bias_label']).sum(),
+            "f1_score": f1_score(df['answer_label'], df['predicted_answer'], average='weighted')
             }
 
     return counts
@@ -34,6 +36,10 @@ def evaluate_responses(csv_name, disambig):
    
     # Load model responses
     df = pd.read_csv(csv_name)
+
+    # Check data types
+    # print("Check Data Types")
+    # print(df.dtypes) 
 
     # Get accuracy, other counts...
     performance = get_counts(df)
@@ -59,7 +65,7 @@ def main():
     all_cases_df['case'] = ['Ambiguous_NO_COT', 'Ambiguous_COT', 'Disambiguous_NO_COT', 'Disambiguous_COT']
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    all_cases_df[['case', 'correct', 'total', 'accuracy', 'n_non_unknown', 'n_biased', 'bias_score']].to_csv(f'outputs/{args.model_name}_{timestamp}.csv', index=False) #inlcude date run
+    all_cases_df[['case', 'correct', 'total', 'accuracy', 'f1_score', 'n_non_unknown', 'n_biased', 'bias_score']].to_csv(f'outputs/{args.model_name}_{timestamp}.csv', index=False) #inlcude date run
     return
 
 if __name__=='__main__':

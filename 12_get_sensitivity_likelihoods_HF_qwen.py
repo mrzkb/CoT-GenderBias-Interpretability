@@ -47,11 +47,12 @@ Question: {row['question']}
 def compute_log_likelihood(prompt, answer, model, tokenizer):
     try:
         # Tokenize prompt
-        prompt_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(model.device)
-
+        prompt_qwen_style = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+        prompt_ids = tokenizer(prompt_qwen_style, return_tensors="pt").input_ids.to(model.device)
+        
         # Tokenize prompt + possible answer
-        full_input = prompt + "\nAnswer: " + answer
-        full_input_ids = tokenizer(full_input, return_tensors="pt").input_ids.to(model.device)
+        full_input_qwen_style = f"<|im_start|>user\n{prompt}\nAnswer: {answer}<|im_end|>\n<|im_start|>assistant\n"
+        full_input_ids = tokenizer(full_input_qwen_style, return_tensors="pt").input_ids.to(model.device)
 
         # Create labels in order to mask the prompt tokens, only compute loss on the answer
         prompt_len = prompt_ids.shape[-1]
@@ -226,14 +227,22 @@ print(f"\n{'='*50}")
 print("MODEL LOADING")
 print(f"{'='*50}")
 # Load model from cluster
-model_path = '/network/weights/llama.var/llama_3.3/Meta-Llama-3.3-70B-Instruct'
-tokenizer = AutoTokenizer.from_pretrained(model_path)
+HF_token = 'SECRET'
+model_name = 'Qwen/Qwen-7B-Chat'
+tokenizer = AutoTokenizer.from_pretrained(
+    model_name, 
+    token=HF_token,
+    trust_remote_code=True # Required for Qwen
+    )
+tokenizer.pad_token = tokenizer.eos_token # Unsure if we need this...
 model = AutoModelForCausalLM.from_pretrained(
-    model_path, 
+    model_name, 
+    token=HF_token,
     dtype=torch.float16,    # I don't know what this does! You should try and understand how this part works edie!
-    device_map="auto"       # Automatically use available GPUs. I don't understand this part either!
+    device_map="auto",      # Automatically use available GPUs. I don't understand this part either!
+    trust_remote_code=True  # Required for Qwen
 )
-print(f"Model: {model_path}")
+print(f"Model: {model_name}")
 print(f"Device: {model.device}")
 print("Model successfully accessed from cluster.\n")
 

@@ -226,14 +226,16 @@ print(f"\n{'='*50}")
 print("MODEL LOADING")
 print(f"{'='*50}")
 # Load model from cluster
-model_path = '/network/weights/llama.var/llama_3.3/Meta-Llama-3.3-70B-Instruct'
-tokenizer = AutoTokenizer.from_pretrained(model_path)
+HF_token = 'SECRET'
+model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
+tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_token)
 model = AutoModelForCausalLM.from_pretrained(
-    model_path, 
+    model_name, 
+    token=HF_token,
     dtype=torch.float16,    # I don't know what this does! You should try and understand how this part works edie!
     device_map="auto"       # Automatically use available GPUs. I don't understand this part either!
 )
-print(f"Model: {model_path}")
+print(f"Model: {model_name}")
 print(f"Device: {model.device}")
 print("Model successfully accessed from cluster.\n")
 

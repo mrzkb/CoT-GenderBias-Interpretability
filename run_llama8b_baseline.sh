@@ -4,7 +4,7 @@
 #SBATCH --error=logs/llama8b_error_%j.txt
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:32gb:1
-#SBATCH --time=01:00:00 # 1 hours, should be enough!
+#SBATCH --time=00:10:00 # 1 hours, should be enough!
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=edie.pearman@mila.quebec
 
@@ -33,12 +33,12 @@ source ~/venvs/bbq310/bin/activate
 
 # Only pass sample_size if it's provided
 if [ -n "$SAMPLE_SIZE" ]; then
-    python 02_get_answers_from_likelihoods_ClusterAccess.py \
+    python 02_HERO.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME" \
         --sample_size "$SAMPLE_SIZE"
 else
-    python 02_get_answers_from_likelihoods_ClusterAccess.py \
+    python 02_HERO.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME"
 fi
