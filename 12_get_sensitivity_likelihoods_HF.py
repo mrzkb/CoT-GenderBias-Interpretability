@@ -226,7 +226,7 @@ print(f"\n{'='*50}")
 print("MODEL LOADING")
 print(f"{'='*50}")
 # Load model from cluster
-HF_token = 'SECRET'
+HF_token = 'hf_SECRET'
 model_name = 'mistralai/Mistral-7B-Instruct-v0.3'
 tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_token)
 model = AutoModelForCausalLM.from_pretrained(

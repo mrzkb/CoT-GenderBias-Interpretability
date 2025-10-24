@@ -227,7 +227,7 @@ print(f"\n{'='*50}")
 print("MODEL LOADING")
 print(f"{'='*50}")
 # Load model from cluster
-HF_token = 'SECRET'
+HF_token = 'hf_SECRET'
 model_name = 'Qwen/Qwen-7B-Chat'
 tokenizer = AutoTokenizer.from_pretrained(
     model_name, 
