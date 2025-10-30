@@ -11,11 +11,15 @@ import re
 import csv, os, ast
 import os.path as op
 
+import torch.nn.functional as F  # you already import F later, keep it once
+
 ### LLAMA
 #   /network/weights/llama.var/llama_3/Meta-Llama-3-8B-Instruct
 #   /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
 #   /network/weights/llama.var/llama_3.3/Meta-Llama-3.3-70B-Instruct
 
+
+### Alternative compute_log_likelihood function
 '''
 def compute_log_likelihood(prompt, answer, model, tokenizer, max_len=768):
     prompt2 = prompt 
@@ -40,9 +44,6 @@ def compute_log_likelihood(prompt, answer, model, tokenizer, max_len=768):
     return -loss * ans_len
 '''
 
-import re
-import torch.nn.functional as F  # you already import F later, keep it once
-
 def ensure_answer_cue(s: str) -> str:
     # Make sure the prompt ends with exactly "Answer: "
     s = s.rstrip("\n")  # DO NOT strip spaces!
@@ -50,9 +51,7 @@ def ensure_answer_cue(s: str) -> str:
         return re.sub(r"(Answer:)\s*$", r"\1 ", s)
     return s + "\nAnswer: "
 
-import torch
-import torch.nn.functional as F
-
+### Original log likelihood 
 def compute_log_likelihood(prompt, answer, model, tokenizer):
     try:
         # Tokenize prompt
@@ -79,6 +78,7 @@ def compute_log_likelihood(prompt, answer, model, tokenizer):
     except Exception as e:
         tqdm.write(f'Error: {str(e)}')
         return float('-inf') # Return very low likelihood on error
+
 '''
 @torch.no_grad()
 @torch.no_grad()
@@ -136,7 +136,7 @@ def compute_log_likelihood(prompt, answer, model, tokenizer, max_len=768, debug=
     return lp
     '''
 
-
+### Original get_answer_from likelihoods, no change
 def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '1', '2']):
     try:
         log_likelihoods = {} 
@@ -160,26 +160,26 @@ def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '
             'error': str(e)
         }
 
-def get_answers_for_df(
-    df,
-    model,
-    tokenizer,
-    answer_choices=['0', '1', '2'],
-    sample_size=None,
-    random_state=22,
-    nas_writer=None,          
-    max_len=768
-    ):
+
+### Modified get_answers_for_df, not from HERO, but even older...
+# nas_writer=None, max_len=768
+def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sample_size=None, random_state=22, nas_writer=None, max_len=768):
     # Optional subsample
     if sample_size is not None:
         original_size = len(df)
         df = df.sample(n=min(sample_size, len(df)), random_state=random_state).reset_index(drop=True)
         print(f"Sampling {len(df)} rows from {original_size} total rows")
 
-    predicted_answers = []
-    max_log_likelihoods = []
-    nas_scalars = []          
-    all_answer_logli = {a: [] for a in answer_choices}
+    # OG 02
+    # predicted_answers = []
+    # max_log_likelihoods = []          
+    # all_answer_logli = {a: [] for a in answer_choices}
+
+    # HERO 02
+    results_data = []
+
+    # Attention 02
+    nas_scalars = []
 
     start_time = time.time()
 
@@ -187,15 +187,31 @@ def get_answers_for_df(
     for i, row in enumerate(tqdm(df.itertuples(index=False), desc="Processing prompts", total=len(df))):
         rd = row._asdict()
         prompt_text = rd["prompt"]
+        example_id = rd["example_id"]
 
-        # 1) Likelihoods over your digit choices (keep your existing behavior)
+        # iter_start = time.time()
+
+        # 1) Get likelihoods for each answer
         results = get_answer_from_likelihoods(prompt_text, model, tokenizer, answer_choices)
         pred_digit = results['predicted_answer']
 
-        predicted_answers.append(pred_digit)
-        max_log_likelihoods.append(results['max_log_likelihood'])
-        for a in answer_choices:
-            all_answer_logli[a].append(results['log_likelihoods'].get(a, float('-inf')))
+        # HERO 02
+        # Save results attached to example_id to ensure no indexing errors
+        result_row = {
+            'example_id': example_id,
+            'predicted_answer': pred_digit, # string '0', '1', or '2'
+            'max_log_likelihood': results['max_log_likelihood'] # float
+        }
+        for answer in answer_choices: # Add individual answer probabilities
+            result_row[f"prob_{answer}"] = results['log_likelihoods'].get(answer, float('-inf'))
+        # results_data.append(result_row)
+
+        # Attention 02
+        # pred_digit = results['predicted_answer'] # string
+        # predicted_answers.append(pred_digit)
+        # max_log_likelihoods.append(results['max_log_likelihood'])
+        # for a in answer_choices:
+        #     all_answer_logli[a].append(results['log_likelihoods'].get(a, float('-inf')))
 
         # 2) Locate S/A token columns strictly inside the Answer Options block (prompt side)
         S_idx, A_idx, S_text, A_text = sa_from_indices(rd)
@@ -226,8 +242,13 @@ def get_answers_for_df(
         with torch.no_grad():
             out = model(**inputs_full, labels=labels, output_attentions=True, use_cache=False, return_dict=True)
             nas_lh, nas_scalar = nas_from_attn(out.attentions, prompt_len_ctx, S_cols, A_cols)
+        
+        # Attention 02
+        # nas_scalars.append(nas_scalar)
 
-        nas_scalars.append(nas_scalar)
+        # HERO 02
+        result_row["nas_stereo_scalar"] = nas_scalar
+        results_data.append(result_row)
 
         # 4) Optionally write per-(layer, head) rows now (so you can aggregate later)
         if nas_writer is not None:
@@ -242,11 +263,18 @@ def get_answers_for_df(
 
     # Add outputs to the dataframe 
     out = df.copy()
-    out["predicted_answer"] = predicted_answers
-    out["max_log_likelihood"] = max_log_likelihoods
-    out["nas_stereo_scalar"] = nas_scalars   
-    for a in answer_choices:
-        out[f"prob_{a}"] = all_answer_logli[a]
+    # out["predicted_answer"] = predicted_answers
+    # out["max_log_likelihood"] = max_log_likelihoods
+    # out["nas_stereo_scalar"] = nas_scalars   
+    # for a in answer_choices:
+    #     out[f"prob_{a}"] = all_answer_logli[a]
+
+    # HERO 02
+    # Create results dataframe and merge on example_id
+    out = df.copy()
+    results_df = pd.DataFrame(results_data)
+    out = out.merge(results_df, on='example_id', how='left')
+
     return out
 
 def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
@@ -254,21 +282,13 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
 
     # Always write outputs into ./data
     os.makedirs('data', exist_ok=True)
+    input_path = f'data/{input_filename}'
 
-    # Use the input path exactly as provided 
-    input_path = input_filename
     if not op.exists(input_path):
-        # optional fallback 
-        alt = op.join('data', input_filename)
-        if op.exists(alt):
-            input_path = alt
-        else:
-            raise FileNotFoundError(f"Input file not found: {input_filename} (also tried {alt})")
+        raise FileNotFoundError(f"Input file not found: {input_path}")
 
-    # Build output name in ./data, stripping any directories from the input
-    base_in = op.basename(input_filename)                      # e.g., "prompts_gender_ambig_no_cot_withAnswer.csv"
-    output_filename = base_in.replace('prompts_', f'{model_name}_responses_')
-    output_path = op.join('data', output_filename)             # e.g., "data/llama8b_responses_gender_ambig_no_cot_withAnswer.csv"
+    output_filename = input_filename.replace('prompts_', f'{model_name}_responses_')
+    output_path = f'data/{output_filename}'
 
     print("\n" + "=" * 60)
     print(f"Processing: {dataset_name}")
@@ -281,7 +301,7 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
         df["answer_texts"] = df["answer_texts"].apply(lambda s: ast.literal_eval(s))
 
     # Per-(layer, head) NAS rows for this dataset
-    nas_rows_path = op.join("data", f"nas_rows_{model_name}_{op.splitext(base_in)[0]}.csv")
+    nas_rows_path = op.join("data", f"nas_rows_{model_name}_{op.splitext(input_filename)[0]}.csv")
     write_header = not op.exists(nas_rows_path)
     with open(nas_rows_path, "a", newline="") as nas_f:
         nas_writer = csv.writer(nas_f)
@@ -424,17 +444,15 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_path, use_fast=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
     model = AutoModelForCausalLM.from_pretrained(
     args.model_path,
-    dtype="auto",              
+    dtype="auto",   # Was torch.float16 before           
     device_map="auto",
     low_cpu_mem_usage=True,
     attn_implementation="eager"  
     )
+
+    # Attention 02
     model.eval()
     model.config.return_dict = True
     # Do NOT set model.config.output_attentions globally, already passed per call.
@@ -443,12 +461,11 @@ def main():
 
     # Define all datasets to process
     datasets = [
-        'prompts/prompts_gender_ambig_no_cot.csv',
-        'prompts/prompts_gender_ambig_cot.csv',
-        'prompts/prompts_gender_disambig_no_cot.csv',
-        'prompts/prompts_gender_disambig_cot.csv'
+        'prompts_gender_ambig_no_cot.csv', # Mira put prompts/ in front for each
+        'prompts_gender_ambig_cot.csv',
+        'prompts_gender_disambig_no_cot.csv',
+        'prompts_gender_disambig_cot.csv'
     ]
-    
     
     for dataset in datasets:
         process_dataset(
