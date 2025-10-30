@@ -3,10 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-def create_heatmap(sas_matrix, title, output_path):
+def create_heatmap(sas_matrix, title, output_path, cbar_label):
     plt.figure(figsize=(12, 10))
-    sns.heatmap(sas_matrix, cmap='RdBu_r', center=0, 
-                cbar_kws={'label': 'Average SAS'})
+    sns.heatmap(sas_matrix, cmap='RdBu_r', center=0, vmin=-1, vmax=1, cbar_kws={'label': cbar_label})
     plt.xlabel('Head')
     plt.ylabel('Layer')
     plt.title(title)
@@ -34,6 +33,8 @@ case_names = {
     'gender_disambig_no_cot': 'Gender Disambiguated without CoT'
 }
 
+matrices = {}
+
 for case in cases:
     # Extract case identifier from filename
     if 'gender_ambig_cot' in case:
@@ -49,18 +50,40 @@ for case in cases:
     sas_df = pd.read_csv(case)
 
     # Create pivot table for heatmap (layers x heads matrix)
-    sas_matrix = sas_df.groupby(['layer', 'head'])['sas'].mean().unstack()
+    sas_matrix = sas_df.groupby(['layer', 'head'])['nas'].mean().unstack() ##### COME BACK CHANGE TO 'sas'
+    matrices[case_id] = sas_matrix
     
     # Create descriptive title and filename
     title = f'Average SAS per Head - {case_names[case_id]}'
     output_path = f'figures/sas_heatmap_{case_id}.png'
     
-    create_heatmap(sas_matrix, title, output_path)
+    create_heatmap(sas_matrix, title, output_path, 'Average SAS')
+
 
 # normalizing?
-# heatmap of the change or the raw SAS?
 
-# Basic Aggregation Across All Prompts
+#############################################################################################
+### Create difference heatmaps (CoT - No CoT)
+
+# Ambiguous case difference
+ambig_diff = matrices['gender_ambig_cot'] - matrices['gender_ambig_no_cot']
+create_heatmap(
+    ambig_diff, 
+    'SAS Difference (CoT - No CoT) - Ambiguous',
+    'figures/sas_heatmap_gender_ambig_diff.png',
+    'SAS Difference (CoT - No CoT)'
+)
+
+# Disambiguated case difference
+disambig_diff = matrices['gender_disambig_cot'] - matrices['gender_disambig_no_cot']
+create_heatmap(
+    disambig_diff,
+    'SAS Difference (CoT - No CoT) - Disambiguous',
+    'figures/sas_heatmap_gender_disambig_diff.png',
+    'SAS Difference (CoT - No CoT)'
+)
+#############################################################################################
+
 
 # Separate Prompts by Case
 
