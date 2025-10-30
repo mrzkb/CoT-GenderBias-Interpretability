@@ -18,32 +18,6 @@ import torch.nn.functional as F  # you already import F later, keep it once
 #   /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
 #   /network/weights/llama.var/llama_3.3/Meta-Llama-3.3-70B-Instruct
 
-
-### Alternative compute_log_likelihood function
-'''
-def compute_log_likelihood(prompt, answer, model, tokenizer, max_len=768):
-    prompt2 = prompt 
-    enc_prompt = tokenizer(prompt2, return_tensors="pt",
-                           add_special_tokens=True, truncation=True, max_length=max_len)
-    enc_answer = tokenizer(answer, return_tensors="pt",
-                           add_special_tokens=False)  # important: no specials here
-
-    input_ids = torch.cat([enc_prompt.input_ids, enc_answer.input_ids], dim=1).to(model.device)
-    prompt_len = enc_prompt.input_ids.shape[-1]
-    ans_len = enc_answer.input_ids.shape[-1]
-
-    labels = input_ids.clone()
-    labels[:, :prompt_len] = -100             # mask prompt and "Answer: "
-    # (the last ans_len tokens remain unmasked)
-
-    with torch.no_grad():
-        out = model(input_ids, labels=labels)
-        loss = out.loss.item()
-
-    # avg loss * number of answer tokens (only ans_len contribute)
-    return -loss * ans_len
-'''
-
 def ensure_answer_cue(s: str) -> str:
     # Make sure the prompt ends with exactly "Answer: "
     s = s.rstrip("\n")  # DO NOT strip spaces!
@@ -79,63 +53,6 @@ def compute_log_likelihood(prompt, answer, model, tokenizer):
         tqdm.write(f'Error: {str(e)}')
         return float('-inf') # Return very low likelihood on error
 
-'''
-@torch.no_grad()
-@torch.no_grad()
-def compute_log_likelihood(prompt, answer, model, tokenizer, max_len=768, debug=True, _printer=print):
-    """
-    Constrained next-token scorer:
-      - Builds the context with a normalized 'Answer: ' cue.
-      - Runs a single forward on the context.
-      - Maps the candidate `answer` (e.g., '0','1','2') to the *context-derived* next-token id.
-      - Returns the log-prob of that single next token (sum_logprob for 1 token).
-
-    Returns: float (log-prob), or -inf if truncated.
-    """
-    device = model.device
-    cand = str(answer)
-
-    # 1) Normalize the cue and encode ONLY the context
-    ctx = ensure_answer_cue(prompt)  # ensures it ends with exactly 'Answer: '
-    enc_ctx = tokenizer(ctx, return_tensors="pt",
-                        add_special_tokens=True, truncation=True, max_length=max_len)
-    ids_ctx = enc_ctx.input_ids.to(device)              # [1, T_ctx]
-
-    # 2) Forward pass on the context; get next-position logits
-    out = model(ids_ctx)
-    logits_next = out.logits[0, -1, :]                  # [V]
-    logprobs_next = torch.log_softmax(logits_next, dim=-1)
-
-    # 3) Find the *context-derived* token id for this candidate
-    #    (encode ctx+cand and take the first new token after ctx)
-    enc_full = tokenizer(ctx + cand, return_tensors="pt",
-                         add_special_tokens=True, truncation=True, max_length=max_len)
-    ids_full = enc_full.input_ids[0]                    # [T_full]
-    T_ctx = ids_ctx.shape[-1]
-    if ids_full.shape[-1] <= T_ctx:
-        if debug:
-            _printer(f"[dbg][cand={cand}][WARN] Truncated while mapping candidate; increase max_len.")
-        return float("-inf")
-
-    cand_token_id = ids_full[T_ctx].item()              # the *first* new token id for `cand`
-    lp = float(logprobs_next[cand_token_id].item())     # log-prob for that token
-
-    if not debug:
-        return lp
-
-    # ---- Debug prints (single-token classification) ----
-    tok_str = tokenizer.convert_ids_to_tokens([cand_token_id])[0]
-    prob = float(torch.exp(torch.tensor(lp)).item())
-
-    _printer(f"[dbg][cand={cand}] prompt_len={T_ctx} total_T_ctx={ids_ctx.shape[-1]}")
-    _printer(f"[dbg][cand={cand}] next-token id: {cand_token_id}")
-    _printer(f"[dbg][cand={cand}] next-token str: {tok_str!r}")
-    _printer(f"[dbg][cand={cand}] logprob: {lp:.6f}  prob: {prob:.6f}")
-    _printer("****************************************************")
-
-    return lp
-    '''
-
 ### Original get_answer_from likelihoods, no change
 def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '1', '2']):
     try:
@@ -162,24 +79,15 @@ def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '
 
 
 ### Modified get_answers_for_df, not from HERO, but even older...
-# nas_writer=None, max_len=768
-def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sample_size=None, random_state=22, nas_writer=None, max_len=768):
+# sas_writer=None, max_len=768
+def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sample_size=None, random_state=22, sas_writer=None, max_len=768):
     # Optional subsample
     if sample_size is not None:
         original_size = len(df)
         df = df.sample(n=min(sample_size, len(df)), random_state=random_state).reset_index(drop=True)
         print(f"Sampling {len(df)} rows from {original_size} total rows")
 
-    # OG 02
-    # predicted_answers = []
-    # max_log_likelihoods = []          
-    # all_answer_logli = {a: [] for a in answer_choices}
-
-    # HERO 02
     results_data = []
-
-    # Attention 02
-    nas_scalars = []
 
     start_time = time.time()
 
@@ -195,7 +103,6 @@ def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sam
         results = get_answer_from_likelihoods(prompt_text, model, tokenizer, answer_choices)
         pred_digit = results['predicted_answer']
 
-        # HERO 02
         # Save results attached to example_id to ensure no indexing errors
         result_row = {
             'example_id': example_id,
@@ -204,14 +111,8 @@ def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sam
         }
         for answer in answer_choices: # Add individual answer probabilities
             result_row[f"prob_{answer}"] = results['log_likelihoods'].get(answer, float('-inf'))
-        # results_data.append(result_row)
+        results_data.append(result_row)
 
-        # Attention 02
-        # pred_digit = results['predicted_answer'] # string
-        # predicted_answers.append(pred_digit)
-        # max_log_likelihoods.append(results['max_log_likelihood'])
-        # for a in answer_choices:
-        #     all_answer_logli[a].append(results['log_likelihoods'].get(a, float('-inf')))
 
         # 2) Locate S/A token columns strictly inside the Answer Options block (prompt side)
         S_idx, A_idx, S_text, A_text = sa_from_indices(rd)
@@ -237,39 +138,23 @@ def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sam
         labels = inputs_full["input_ids"].clone()
         labels[:, :input_ids_prompt.shape[-1]] = -100  # score only the answer segment
 
-        # use THIS prompt_len for "i >= prompt_len" queries in NAS
+        # use THIS prompt_len for "i >= prompt_len" queries in SAS
         prompt_len_ctx = input_ids_prompt.shape[-1]
         with torch.no_grad():
             out = model(**inputs_full, labels=labels, output_attentions=True, use_cache=False, return_dict=True)
-            nas_lh, nas_scalar = nas_from_attn(out.attentions, prompt_len_ctx, S_cols, A_cols)
-        
-        # Attention 02
-        # nas_scalars.append(nas_scalar)
-
-        # HERO 02
-        result_row["nas_stereo_scalar"] = nas_scalar
-        results_data.append(result_row)
+            sas_lh = sas_from_attn(out.attentions, prompt_len_ctx, S_cols, A_cols)
 
         # 4) Optionally write per-(layer, head) rows now (so you can aggregate later)
-        if nas_writer is not None:
+        if sas_writer is not None:
             ex_id = rd.get("example_id", f"row_{i}")
-            L, H = nas_lh.shape
+            L, H = sas_lh.shape
             for l in range(L):
                 for h in range(H):
-                    nas_writer.writerow([ex_id, l, h, float(nas_lh[l, h])])
+                    sas_writer.writerow([ex_id, l, h, float(sas_lh[l, h])])
 
     total_time = time.time() - start_time
     print(f"\nCompleted in {total_time/60:.2f} minutes ({total_time/len(df):.2f}s per prompt)")
 
-    # Add outputs to the dataframe 
-    out = df.copy()
-    # out["predicted_answer"] = predicted_answers
-    # out["max_log_likelihood"] = max_log_likelihoods
-    # out["nas_stereo_scalar"] = nas_scalars   
-    # for a in answer_choices:
-    #     out[f"prob_{a}"] = all_answer_logli[a]
-
-    # HERO 02
     # Create results dataframe and merge on example_id
     out = df.copy()
     results_df = pd.DataFrame(results_data)
@@ -300,16 +185,16 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     if isinstance(df.iloc[0]["answer_texts"], str):
         df["answer_texts"] = df["answer_texts"].apply(lambda s: ast.literal_eval(s))
 
-    # Per-(layer, head) NAS rows for this dataset
-    nas_rows_path = op.join("data", f"nas_rows_{model_name}_{op.splitext(input_filename)[0]}.csv")
-    write_header = not op.exists(nas_rows_path)
-    with open(nas_rows_path, "a", newline="") as nas_f:
-        nas_writer = csv.writer(nas_f)
+    # Per-(layer, head) SAS rows for this dataset
+    sas_rows_path = op.join("data", f"sas_rows_{model_name}_{op.splitext(input_filename)[0]}.csv")
+    write_header = not op.exists(sas_rows_path)
+    with open(sas_rows_path, "a", newline="") as sas_f:
+        sas_writer = csv.writer(sas_f)
         if write_header:
-            nas_writer.writerow(["example_id", "layer", "head", "nas"])
+            sas_writer.writerow(["example_id", "layer", "head", "sas"])
 
         responses = get_answers_for_df(
-            df, model, tokenizer, sample_size=sample_size, nas_writer=nas_writer
+            df, model, tokenizer, sample_size=sample_size, sas_writer=sas_writer
         )
 
     responses.to_csv(output_path, index=False)
@@ -401,30 +286,33 @@ def locate_SA_in_options_block(tokenizer, prompt_text, S_idx, S_text, A_idx, A_t
 
 
 EPS = 1e-30
-def nas_from_attn(attentions, prompt_len, S_cols, A_cols):
+def sas_from_attn(attentions, prompt_len, S_cols, A_cols):
     """
     attentions: list over layers, each [B,H,T,S] (self-attention weights)
     Uses answer rows (i >= prompt_len) as queries, sums attention to Stereotypical and Antistereotypical columns.
     Returns:
-      nas_lh: [L,H] tensor (per-layer, per-head NAS for this prompt)
-      nas_scalar: float (sum over L,H), this is not as important as nas_lh .. not sure if we neeed it 
+      sas_lh: [L,H] tensor (per-layer, per-head SAS for this prompt)
     """
     if not S_cols or not A_cols:
         L, H = len(attentions), attentions[0].shape[1]
         return torch.zeros(L, H, dtype=torch.float64), 0.0
 
     per_layer = []
-    for layer_attn in attentions:  # [B,H,T,S]
-        A = layer_attn[0]               # [H,T,S]
-        ans_rows = A[:, prompt_len:, :] # queries = answer tokens
-        mS = ans_rows[:, :, S_cols].sum(-1)  # [H, T_ans]
-        mA = ans_rows[:, :, A_cols].sum(-1)
-        term = (mS + mA) * torch.log((mS + EPS)/(mA + EPS))
-        per_layer.append(term.sum(-1).double())  # [H]
-    nas = torch.stack(per_layer, dim=0)          # [L,H]
+    for layer_attn in attentions:                   # [B,H,T,S]
+        A = layer_attn[0]                           # [H,T,S]
+        ans_rows = A[:, prompt_len:, :]             # queries = answer tokens
 
-    return nas, float(nas.sum().item())
+        # Sum attention to stereotypical and anti-stereotypical columns
+        A_stereo = ans_rows[:, :, S_cols].sum(-1)   # [H, T_ans] # Why -1?
+        A_anti = ans_rows[:, :, A_cols].sum(-1)     # [H, T_ans]
 
+        # SAS formula: (A_stereo + A_anti) * log(A_stereo / A_anti)
+        term = (A_stereo + A_anti) * torch.log((A_stereo + EPS)/(A_anti + EPS))
+
+        per_layer.append(term.sum(-1).double())     # Sum over token range, [H]
+    
+    sas = torch.stack(per_layer, dim=0) # [L,H]
+    return sas  
 
 def main():
     parser = argparse.ArgumentParser(description='Process prompts with LLM and compute log-likelihoods')
@@ -478,7 +366,6 @@ def main():
 
     print("\nAll datasets processed, cheers!")
     return
-
 
 if __name__ == '__main__':
     main()
