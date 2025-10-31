@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import pandas as pd
 import time
+from datetime import datetime
 from tqdm import tqdm 
 # NOTE: tqdm.write() prints above a progress bar so as not to interupt the visualization
 import argparse
@@ -146,11 +147,17 @@ def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sam
 
         # 4) Optionally write per-(layer, head) rows now (so you can aggregate later)
         if sas_writer is not None:
-            ex_id = rd.get("example_id", f"row_{i}")
+            # ex_id = rd.get("example_id", f"row_{i}")
+            
+            # Handle tuple return (when S_cols or A_cols is empty)
+            if isinstance(sas_lh, tuple):
+                tqdm.write(f"WARNING: Failed to locate S/A tokens for example_id={example_id}")
+                sas_lh = sas_lh[0]  # Extract just the tensor from the tuple
+
             L, H = sas_lh.shape
             for l in range(L):
                 for h in range(H):
-                    sas_writer.writerow([ex_id, l, h, float(sas_lh[l, h])])
+                    sas_writer.writerow([example_id, l, h, float(sas_lh[l, h])])
 
     total_time = time.time() - start_time
     print(f"\nCompleted in {total_time/60:.2f} minutes ({total_time/len(df):.2f}s per prompt)")
@@ -172,7 +179,10 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     if not op.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
-    output_filename = input_filename.replace('prompts_', f'{model_name}_responses_')
+    # Generate timestamp in format: YYYYMMDD_HHMMSS
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+
+    output_filename = input_filename.replace('prompts_', f'{model_name}_responses_{timestamp}_')
     output_path = f'data/{output_filename}'
 
     print("\n" + "=" * 60)
@@ -337,7 +347,7 @@ def main():
     dtype="auto",   # Was torch.float16 before           
     device_map="auto",
     low_cpu_mem_usage=True,
-    attn_implementation="eager"  
+    attn_implementation="flash_attention_2"  
     )
 
     # Attention 02
