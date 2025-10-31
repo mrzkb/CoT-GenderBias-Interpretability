@@ -14,6 +14,12 @@ import os.path as op
 
 import torch.nn.functional as F  # you already import F later, keep it once
 
+
+
+# TODO: Organization, form modules
+# Implement Flash Attention/Profiling for other efficiency gains (batches?)
+
+
 ### LLAMA
 #   /network/weights/llama.var/llama_3/Meta-Llama-3-8B-Instruct
 #   /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
@@ -347,7 +353,7 @@ def main():
     dtype="auto",   # Was torch.float16 before           
     device_map="auto",
     low_cpu_mem_usage=True,
-    attn_implementation="flash_attention_2"  
+    attn_implementation="eager"  # 'flash_attention_2' or 'eager'
     )
 
     # Attention 02
