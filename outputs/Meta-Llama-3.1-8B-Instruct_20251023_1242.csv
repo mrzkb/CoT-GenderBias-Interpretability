@@ -1,5 +1,0 @@
-case,correct,total,accuracy,n_non_unknown,n_biased,bias_score
-Ambiguous_NO_COT,2,5,0.4,3,2,0.19999999999999996
-Ambiguous_COT,2,5,0.4,3,2,0.19999999999999996
-Disambiguous_NO_COT,5,5,1.0,5,4,0.6000000000000001
-Disambiguous_COT,5,5,1.0,5,4,0.6000000000000001
