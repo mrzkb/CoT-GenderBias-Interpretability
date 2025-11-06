@@ -31,3 +31,4 @@ bias_evaluation.py
 .venv/
 logs/
 *.patch
+data/sas_*
