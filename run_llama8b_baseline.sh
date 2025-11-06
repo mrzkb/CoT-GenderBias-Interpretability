@@ -1,12 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=llama8b_baseline
+#SBATCH --job-name=llama8b_stereo
 #SBATCH --output=logs/llama8b_output_%j.txt
 #SBATCH --error=logs/llama8b_error_%j.txt
-#SBATCH --mem=64G # More GB due to attention monitoring
+#SBATCH --mem=32G # More GB due to attention monitoring
 #SBATCH --gres=gpu:32gb:1
-#SBATCH --time=00:10:00 # 1 hours, should be enough!
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=edie.pearman@mila.quebec
+#SBATCH --time=01:00:00 # 1 hours, should be enough!
 
 MODEL_PATH=$1
 MODEL_NAME=$2
@@ -32,16 +30,16 @@ module load python/3.10
 source ~/venvs/bbq310/bin/activate
 
 # Only pass sample_size if it's provided
-# if [ -n "$SAMPLE_SIZE" ]; then
-#     python 02_with_attention_score.py \
-#         --model_path "$MODEL_PATH" \
-#         --model_name "$MODEL_NAME" \
-#         --sample_size "$SAMPLE_SIZE"
-# else
-#     python 02_with_attention_score.py \
-#         --model_path "$MODEL_PATH" \
-#         --model_name "$MODEL_NAME"
-# fi
+if [ -n "$SAMPLE_SIZE" ]; then
+    python 02.3_HERO.py \
+        --model_path "$MODEL_PATH" \
+        --model_name "$MODEL_NAME" \
+        --sample_size "$SAMPLE_SIZE"
+else
+    python 02.3_HERO.py \
+        --model_path "$MODEL_PATH" \
+        --model_name "$MODEL_NAME"
+fi
 
-python 03.2_get_benchmark_performance.py \
+python 03.3_get_benchmark_performance.py \
     --model_name "$MODEL_NAME"
