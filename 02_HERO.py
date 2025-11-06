@@ -177,7 +177,7 @@ def main():
         'prompts_gender_disambig_no_cot.csv',
         'prompts_gender_disambig_cot.csv'
     ]
-    
+
     # Process each dataset
     for dataset in datasets:
         process_dataset(

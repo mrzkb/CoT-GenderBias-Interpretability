@@ -60,31 +60,43 @@ for case in cases:
     create_heatmap(sas_matrix, title, output_path, 'Average SAS')
 
 
-# normalizing?
+#############################################################################################
+### Top k
+
+
+
+
+#############################################################################################
+
+
+
+
+
 
 #############################################################################################
 ### Create difference heatmaps (CoT - No CoT)
 
 # Ambiguous case difference
-ambig_diff = matrices['gender_ambig_cot'] - matrices['gender_ambig_no_cot']
-create_heatmap(
-    ambig_diff, 
-    'SAS Difference (CoT - No CoT) - Ambiguous',
-    'figures/sas_heatmap_gender_ambig_diff.png',
-    'SAS Difference (CoT - No CoT)'
-)
+# ambig_diff = matrices['gender_ambig_cot'] - matrices['gender_ambig_no_cot']
+# create_heatmap(
+#     ambig_diff, 
+#     'SAS Difference (CoT - No CoT) - Ambiguous',
+#     'figures/sas_heatmap_gender_ambig_diff.png',
+#     'SAS Difference (CoT - No CoT)'
+# )
 
-# Disambiguated case difference
-disambig_diff = matrices['gender_disambig_cot'] - matrices['gender_disambig_no_cot']
-create_heatmap(
-    disambig_diff,
-    'SAS Difference (CoT - No CoT) - Disambiguous',
-    'figures/sas_heatmap_gender_disambig_diff.png',
-    'SAS Difference (CoT - No CoT)'
-)
+# # Disambiguated case difference
+# disambig_diff = matrices['gender_disambig_cot'] - matrices['gender_disambig_no_cot']
+# create_heatmap(
+#     disambig_diff,
+#     'SAS Difference (CoT - No CoT) - Disambiguous',
+#     'figures/sas_heatmap_gender_disambig_diff.png',
+#     'SAS Difference (CoT - No CoT)'
+# )
 #############################################################################################
 
-
 # Separate Prompts by Case
+# Should the cases be changes in answer with the addition of CoT?
+# OR should the cases be just biased vs. non-biased...
 
 # Heatmap for Cases.
