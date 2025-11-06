@@ -49,9 +49,9 @@ def main():
     all_cases_df['case'] = ['NO_COT', 'COT']
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/stereo/{args.model_name}_{timestamp}.csv', index=False) #inlcude date run
+    all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/stereo/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
     
-    # all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/crows/{args.model_name}_{timestamp}.csv', index=False) #inlcude date run
+    # all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/crows/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
     
     return
 

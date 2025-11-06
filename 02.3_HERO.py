@@ -143,6 +143,8 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
         raise FileNotFoundError(f"Input file not found: {input_path}")
     
     df = pd.read_csv(input_path)
+
+    df = df[df[bias_type] == 'gender']
     
     # Check data types
     # print("Check Data Types")
