@@ -8,10 +8,15 @@ import argparse
 import os
 import ast
 
+#### This one is for crowspairs and stero for only two answer options
+
 ### LLAMA
 #   /network/weights/llama.var/llama_3/Meta-Llama-3-8B-Instruct
 #   /network/weights/llama.var/llama_3.1/Meta-Llama-3.1-8B-Instruct
 #   /network/weights/llama.var/llama_3.3/Meta-Llama-3.3-70B-Instruct
+
+#   /network/weights/llama.var/llama_2/llama-2-7b-chat
+#   /network/weights/llama.var/llama_2/Llama-2-7b-chat-hf
 
 def compute_log_likelihood(prompt, answer, model, tokenizer):
     try:
@@ -42,9 +47,9 @@ def compute_log_likelihood(prompt, answer, model, tokenizer):
         return float('-inf') # Return very low likelihood on error
 
 
-def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '1', '2']):
+def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '1']):
     try:
-        log_likelihoods = {} # dictionary, each key is an MCQ index '0', '1', '2'
+        log_likelihoods = {} # dictionary, each key is an MCQ index '1', '2'
 
         for answer in answer_choices:
             log_likelihoods[answer] = compute_log_likelihood(prompt, answer, model, tokenizer)
@@ -66,7 +71,7 @@ def get_answer_from_likelihoods(prompt, model, tokenizer, answer_choices=['0', '
             'error': str(e)
         }
 
-def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sample_size=None, random_state=22):
+def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1'], sample_size=None, random_state=22):
     # Allow for testing on smaller subset of the df
     if sample_size is not None:
         original_size = len(df)
@@ -90,7 +95,7 @@ def get_answers_for_df(df, model, tokenizer, answer_choices=['0', '1', '2'], sam
         # Save results attached to example_id to ensure no indexing errors
         result_row = {
             'example_id': example_id,
-            'predicted_answer': results['predicted_answer'], # string '0', '1', or '2'
+            'predicted_answer': str(results['predicted_answer']), # string '0', '1'
             'max_log_likelihood': results['max_log_likelihood'] # float
         }
 
@@ -124,7 +129,11 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     
     os.makedirs('data', exist_ok=True)
     input_path = f'data/{input_filename}'
-    output_filename = input_filename.replace('prompts_', f'{model_name}_responses_')
+
+    # output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
+    # output_path = f'data/{output_filename}'
+
+    output_filename = input_filename.replace('prompts_crowspairs_', f'{model_name}_responses_all_bias_type_')
     output_path = f'data/{output_filename}'
     
     print("\n" + "=" * 60)
@@ -135,6 +144,8 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
         raise FileNotFoundError(f"Input file not found: {input_path}")
     
     df = pd.read_csv(input_path)
+
+    # df = df[df['bias_type'] == 'gender']
     
     # Check data types
     # print("Check Data Types")
@@ -170,14 +181,16 @@ def main():
 
     print("Model successfully accessed from cluster.")
 
-    # Define all datasets to process
-    datasets = [
-        'prompts_gender_ambig_no_cot_no_unknown.csv',
-        'prompts_gender_ambig_cot_no_unknown.csv',
-        'prompts_gender_disambig_no_cot_no_unknown.csv',
-        'prompts_gender_disambig_cot_no_unknown.csv'
-    ]
+    # datasets = [
+    #     'stereo/prompts_stereoset_nounk_cot.csv',
+    #     'stereo/prompts_stereoset_nounk_no_cot.csv',
+    # ]
 
+    datasets = [
+        'crows/prompts_crowspairs_nounk_cot.csv',
+        'crows/prompts_crowspairs_nounk_no_cot.csv',
+    ]
+    
     # Process each dataset
     for dataset in datasets:
         process_dataset(

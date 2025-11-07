@@ -37,11 +37,11 @@ def main():
                         help='Short name for the model (used in output filenames)') 
     args = parser.parse_args()
  
-    NCOT = evaluate_responses(f'data/stereo/{args.model_name}_responses_gender_no_cot.csv')
-    COT = evaluate_responses(f'data/stereo/{args.model_name}_responses_gender_cot.csv')
+    # NCOT = evaluate_responses(f'data/stereo/{args.model_name}_responses_gender_nounk_no_cot.csv')
+    # COT = evaluate_responses(f'data/stereo/{args.model_name}_responses_gender_nounk_cot.csv')
 
-    # NCOT = evaluate_responses(f'data/crows/{args.model_name}_responses_gender_no_cot.csv')
-    # COT = evaluate_responses(f'data/crows/{args.model_name}_responses_gender_cot.csv')
+    NCOT = evaluate_responses(f'data/crows/{args.model_name}_responses_gender_no_cot.csv')
+    COT = evaluate_responses(f'data/crows/{args.model_name}_responses_gender_cot.csv')
 
     all_cases = [NCOT, COT]
     case_names = ['NO_COT', 'COT']
@@ -49,9 +49,9 @@ def main():
     all_cases_df['case'] = ['NO_COT', 'COT']
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/stereo/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
+    # all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/stereo/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
     
-    # all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/crows/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
+    all_cases_df[['case', 'total', 'p_unknown', 'p_ster', 'p_antister']].to_csv(f'outputs/crows/{args.model_name}_gender_{timestamp}.csv', index=False) #inlcude date run
     
     return
 

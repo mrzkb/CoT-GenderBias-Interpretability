@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=llama8b_stereo
+#SBATCH --job-name=llama8b_crows
 #SBATCH --output=logs/llama8b_output_%j.txt
 #SBATCH --error=logs/llama8b_error_%j.txt
 #SBATCH --mem=32G # More GB due to attention monitoring
 #SBATCH --gres=gpu:32gb:1
-#SBATCH --time=01:00:00 # 1 hours, should be enough!
+#SBATCH --time=00:10:00 # 1 hours, should be enough!
 
 MODEL_PATH=$1
 MODEL_NAME=$2

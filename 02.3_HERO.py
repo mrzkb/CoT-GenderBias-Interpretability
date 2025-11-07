@@ -129,11 +129,11 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     os.makedirs('data', exist_ok=True)
     input_path = f'data/{input_filename}'
 
-    output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
-    output_path = f'data/stereo/{output_filename}'
+    # output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
+    # output_path = f'data/stereo/{output_filename}'
 
-    # output_filename = input_filename.replace('prompts_crowspairs_', f'{model_name}_responses_gender_')
-    # output_path = f'data/crows/{output_filename}'
+    output_filename = input_filename.replace('prompts_crowspairs_', f'{model_name}_responses_gender_')
+    output_path = f'data/crows/{output_filename}'
     
     print("\n" + "=" * 60)
     print(f"Processing: {dataset_name}")
@@ -144,7 +144,7 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     
     df = pd.read_csv(input_path)
 
-    df = df[df[bias_type] == 'gender']
+    df = df[df['bias_type'] == 'gender']
     
     # Check data types
     # print("Check Data Types")
@@ -180,15 +180,15 @@ def main():
 
     print("Model successfully accessed from cluster.")
 
-    datasets = [
-        'prompts_stereoset_cot.csv',
-        'prompts_stereoset_no_cot.csv',
-    ]
-
     # datasets = [
-    #     'prompts_crowspairs_cot.csv',
-    #     'prompts_crowspairs_no_cot.csv',
+    #     'prompts_stereoset_cot.csv',
+    #     'prompts_stereoset_no_cot.csv',
     # ]
+
+    datasets = [
+        'prompts_crowspairs_cot.csv',
+        'prompts_crowspairs_no_cot.csv',
+    ]
     
     # Process each dataset
     for dataset in datasets:
