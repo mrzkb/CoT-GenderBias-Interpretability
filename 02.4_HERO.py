@@ -130,10 +130,7 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     os.makedirs('data', exist_ok=True)
     input_path = f'data/{input_filename}'
 
-    # output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
-    # output_path = f'data/{output_filename}'
-
-    output_filename = input_filename.replace('prompts_crowspairs_', f'{model_name}_responses_all_bias_type_')
+    output_filename = input_filename.replace('prompts_', f'{model_name}_responses_')
     output_path = f'data/{output_filename}'
     
     print("\n" + "=" * 60)
@@ -181,15 +178,23 @@ def main():
 
     print("Model successfully accessed from cluster.")
 
+    # Define all datasets to process
+    datasets = [
+        'prompts_gender_ambig_no_cot_nounk.csv',
+        'prompts_gender_ambig_cot_nounk.csv',
+        'prompts_gender_disambig_no_cot_nounk.csv',
+        'prompts_gender_disambig_cot_nounk.csv'
+    ]
+    
     # datasets = [
-    #     'stereo/prompts_stereoset_nounk_cot.csv',
-    #     'stereo/prompts_stereoset_nounk_no_cot.csv',
+    #     'stereo/prompts_stereoset_cot.csv',
+    #     'stereo/prompts_stereoset_no_cot.csv',
     # ]
 
-    datasets = [
-        'crows/prompts_crowspairs_nounk_cot.csv',
-        'crows/prompts_crowspairs_nounk_no_cot.csv',
-    ]
+    # datasets = [
+    #     'crows/prompts_crowspairs_nounk_cot.csv',
+    #     'crows/prompts_crowspairs_nounk_no_cot.csv',
+    # ]
     
     # Process each dataset
     for dataset in datasets:

@@ -1,0 +1,5 @@
+case,total,p_ster,p_antister
+Ambiguous_NO_COT,25524,58.33,41.67
+Ambiguous_COT,25524,59.27,40.73
+Disambiguous_NO_COT,25524,52.09,47.91
+Disambiguous_COT,25524,51.65,48.35

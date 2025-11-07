@@ -91,7 +91,7 @@ def clean_stereoset(prompt_df, CoT, unk):
         prefix, suffix = row['context'].split("BLANK")
         
         fillers = []
-        labels = row['sentences']['gold_label']
+        labels = row['sentences']['gold_label'] # 'gold_label': array([0, 2, 1])
         
         # Select which labels to include
         if unk:
@@ -106,7 +106,7 @@ def clean_stereoset(prompt_df, CoT, unk):
             else:
                 pattern = re.escape(prefix.strip()) + r"\s*(.*)$"
             match = re.search(pattern, s)
-            fillers.append(match.group(1).strip() if match else None)
+            fillers.append(match.group(1).strip() if match else None) # This is throwing None a lot I think
         
         # Create answer options text
         options_text = ""
@@ -144,6 +144,7 @@ def clean_stereoset(prompt_df, CoT, unk):
         df_clean.to_csv('data/stereo/prompts_stereoset_cot.csv', index=False)
     else: 
         df_clean.to_csv('data/stereo/prompts_stereoset_no_cot.csv', index=False)
+
 
 #CoT
 clean_stereoset(df,True, False)

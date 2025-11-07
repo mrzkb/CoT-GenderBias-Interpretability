@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=llama70b_baseline
+#SBATCH --job-name=llama70b_bbq
 #SBATCH --output=logs/llama70b_output_%j.txt
 #SBATCH --error=logs/llama70b_error_%j.txt
 #SBATCH --mem=128G
@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --ntasks=1
 #SBATCH --constraint=ampere&nvlink
-#SBATCH --time=02:00:00 # 0.75 minutes per 100 prompts in a single dataset
+#SBATCH --time=00:10:00 # 0.75 minutes per 100 prompts in a single dataset
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=edie.pearman@mila.quebec
 
@@ -36,15 +36,15 @@ source ~/venvs/bbq310/bin/activate
 
 # Only pass sample_size if it's provided
 if [ -n "$SAMPLE_SIZE" ]; then
-    python 02_HER0.py \
+    python 02.4_HER0.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME" \
         --sample_size "$SAMPLE_SIZE"
 else
-    python 02_HERO.py \
+    python 02.4_HERO.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME"
 fi
 
-python 03.2_get_benchmark_performance.py \
+python 03.3_get_benchmark_performance.py \
     --model_name "$MODEL_NAME"
