@@ -139,6 +139,42 @@ for pair in case_pairs:
         sas_df = pd.read_csv(sas_file)
         
         print(f"\nCreating heatmaps for: {case_names[case_id]}")
+
+        # STEP 2.5: Track top heads from no_cot for later comparison
+        if cot_type == 'no_cot':
+            no_cot_sas = pd.read_csv(pair['no_cot']['sas'])
+            
+            # Get top 10 most intense heads overall (highest absolute SAS)
+            no_cot_sas['abs_nas'] = no_cot_sas['nas'].abs()
+            overall_top = no_cot_sas.groupby(['layer', 'head'])['abs_nas'].mean().reset_index()
+            overall_top = overall_top.nlargest(10, 'abs_nas')[['layer', 'head']]
+            
+            # Get top 5 for stereotypical group (bias group)
+            if is_disambig:
+                stereo_group_ids = groups['bias_correct'][0] if len(groups['bias_correct'][0]) > 0 else groups['bias_incorrect'][0]
+            else:
+                stereo_group_ids = groups['bias'][0]
+            
+            stereo_sas = no_cot_sas[no_cot_sas['example_id'].isin(stereo_group_ids)]
+            stereo_top = stereo_sas.groupby(['layer', 'head'])['abs_nas'].mean().reset_index()
+            stereo_top = stereo_top.nlargest(5, 'abs_nas')[['layer', 'head']]
+            
+            # Get top 5 for anti-stereotypical group
+            if is_disambig:
+                anti_group_ids = groups['anti_correct'][0] if len(groups['anti_correct'][0]) > 0 else groups['anti_incorrect'][0]
+            else:
+                anti_group_ids = groups['anti_stereo'][0]
+            
+            anti_sas = no_cot_sas[no_cot_sas['example_id'].isin(anti_group_ids)]
+            anti_top = anti_sas.groupby(['layer', 'head'])['abs_nas'].mean().reset_index()
+            anti_top = anti_top.nlargest(5, 'abs_nas')[['layer', 'head']]
+            
+            # Store these for comparison
+            tracked_heads = {
+                'overall': overall_top,
+                'stereo': stereo_top,
+                'anti': anti_top
+            }
         
         for group_name, (example_ids, group_title) in groups.items():
             if len(example_ids) == 0:
@@ -157,3 +193,35 @@ for pair in case_pairs:
             output_path = f'figures/sas_heatmap_{case_id}_{group_name}_{timestamp}.png'
             
             create_heatmap(sas_matrix, title, output_path, 'Average SAS')
+
+    print(f"\n{'='*60}")
+    print(f"Comparison: Top Heads from no_cot vs cot for {condition}")
+    print(f"{'='*60}")
+    
+    cot_sas = pd.read_csv(pair['cot']['sas'])
+    
+    for head_type, head_df in tracked_heads.items():
+        print(f"\n{head_type.upper()} - Top Heads:")
+        print("-" * 60)
+        
+        for _, row in head_df.iterrows():
+            layer, head = int(row['layer']), int(row['head'])
+            
+            # Get no_cot value
+            no_cot_val = no_cot_sas[
+                (no_cot_sas['layer'] == layer) & 
+                (no_cot_sas['head'] == head)
+            ]['nas'].mean()
+            
+            # Get cot value
+            cot_val = cot_sas[
+                (cot_sas['layer'] == layer) & 
+                (cot_sas['head'] == head)
+            ]['nas'].mean()
+            
+            change = cot_val - no_cot_val
+            
+            print(f"Layer {layer}, Head {head}:")
+            print(f"  no_cot: {no_cot_val:.4f}")
+            print(f"  cot:    {cot_val:.4f}")
+            print(f"  change: {change:+.4f}")

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=llama8b_bbq
+#SBATCH --job-name=llama8b_stereo
 #SBATCH --output=logs/llama8b_output_%j.txt
 #SBATCH --error=logs/llama8b_error_%j.txt
 #SBATCH --mem=32G # More GB due to attention monitoring

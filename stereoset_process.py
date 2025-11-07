@@ -4,10 +4,6 @@ import re
 
 df = pd.read_parquet("hf://datasets/McGill-NLP/stereoset/intrasentence/validation-00000-of-00001.parquet")
 
-import pandas as pd
-import numpy as np
-import re
-
 def clean_stereoset(prompt_df, CoT, unk):
     
     df_clean = pd.DataFrame(columns=[
@@ -124,6 +120,12 @@ clean_stereoset(df,True, True)
 #NoCoT
 clean_stereoset(df,False, False)
 clean_stereoset(df,False, True)
+
+
+
+
+
+
 
 #NoCoT
 
@@ -270,8 +272,8 @@ def clean_stereoset(prompt_df, CoT, unk):
         df_clean.to_csv('data/stereo/prompts_stereoset_no_cot.csv', index=False)
 
 '''
-#CoT
-clean_stereoset(df,True, False)
+# #CoT
+# clean_stereoset(df,True, False)
 
-#NoCoT
-clean_stereoset(df,False, False)
+# #NoCoT
+# clean_stereoset(df,False, False)
