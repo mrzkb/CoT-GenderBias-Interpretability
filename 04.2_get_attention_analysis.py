@@ -1,0 +1,166 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from datetime import datetime
+
+
+######## Modifications to separate prompts based on CoT change
+
+def create_heatmap(sas_matrix, title, output_path, cbar_label):
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(sas_matrix, cmap='RdBu_r', center=0, vmin=-5, vmax=5, cbar_kws={'label': cbar_label})
+    plt.xlabel('Head')
+    plt.ylabel('Layer')
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+    print(f"Saved: {output_path}")
+    return
+
+def classify_prediction(row, is_disambig=False):
+    """Classify a prediction as 'unknown', 'bias', or 'anti_stereo'"""
+    pred = row['predicted_answer']
+    unknown = row['unknown_label']
+    bias = row['bias_label']
+    
+    if pred == unknown:
+        return 'unknown'
+    elif pred == bias:
+        if is_disambig:
+            # For disambig, also check correctness
+            if pred == row['answer_label']:
+                return 'bias_correct'
+            else:
+                return 'bias_incorrect'
+        else:
+            return 'bias'
+    else:
+        if is_disambig:
+            # Anti-stereotypical with correctness
+            if pred == row['answer_label']:
+                return 'anti_correct'
+            else:
+                return 'anti_incorrect'
+        else:
+            return 'anti_stereo'
+
+# Create output directory if it doesn't exist
+os.makedirs('figures', exist_ok=True)
+
+# Group cases by condition (ambig vs disambig)
+case_pairs = [
+    {
+        'condition': 'gender_ambig',
+        'no_cot': {
+            'sas': 'data/sas_rows_Meta-Llama-3.1-8B-Instruct_prompts_gender_ambig_no_cot.csv',
+            'predictions': 'data/Meta-Llama-3.1-8B-Instruct_responses_gender_ambig_no_cot.csv'
+        },
+        'cot': {
+            'sas': 'data/sas_rows_Meta-Llama-3.1-8B-Instruct_prompts_gender_ambig_cot.csv',
+            'predictions': 'data/Meta-Llama-3.1-8B-Instruct_responses_gender_ambig_cot.csv'
+        }
+    },
+    {
+        'condition': 'gender_disambig',
+        'no_cot': {
+            'sas': 'data/sas_rows_Meta-Llama-3.1-8B-Instruct_prompts_gender_disambig_no_cot.csv',
+            'predictions': 'data/Meta-Llama-3.1-8B-Instruct_responses_gender_disambig_no_cot.csv'
+        },
+        'cot': {
+            'sas': 'data/sas_rows_Meta-Llama-3.1-8B-Instruct_prompts_gender_disambig_cot.csv',
+            'predictions': 'data/Meta-Llama-3.1-8B-Instruct_responses_gender_disambig_cot.csv'
+        }
+    }
+]
+
+# Define readable names
+case_names = {
+    'gender_ambig_cot': 'Gender Ambiguous with CoT',
+    'gender_ambig_no_cot': 'Gender Ambiguous without CoT',
+    'gender_disambig_cot': 'Gender Disambiguated with CoT',
+    'gender_disambig_no_cot': 'Gender Disambiguated without CoT'
+}
+
+for pair in case_pairs:
+    condition = pair['condition']
+    is_disambig = 'disambig' in condition
+    
+    print(f"\n{'='*60}")
+    print(f"Processing: {condition}")
+    print(f"{'='*60}")
+    
+    # STEP 1: Load both no_cot and cot predictions
+    no_cot_predictions = pd.read_csv(pair['no_cot']['predictions'])
+    cot_predictions = pd.read_csv(pair['cot']['predictions'])
+    
+    # STEP 2: Classify each prediction
+    no_cot_predictions['prediction_type'] = no_cot_predictions.apply(
+        lambda row: classify_prediction(row, is_disambig), axis=1
+    )
+    cot_predictions['prediction_type'] = cot_predictions.apply(
+        lambda row: classify_prediction(row, is_disambig), axis=1
+    )
+    
+    # STEP 3: Merge to track changes
+    # Merge on example_id to get both prediction types
+    merged = no_cot_predictions[['example_id', 'prediction_type']].merge(
+        cot_predictions[['example_id', 'prediction_type']], 
+        on='example_id', 
+        suffixes=('_no_cot', '_cot')
+    )
+    
+    # Create transition label
+    merged['transition'] = merged['prediction_type_no_cot'] + '_to_' + merged['prediction_type_cot']
+    
+    # STEP 4: Identify all unique transitions and their counts
+    transition_counts = merged['transition'].value_counts()
+    print(f"\nTransition counts:")
+    for transition, count in transition_counts.items():
+        print(f"  {transition}: {count} examples")
+    
+    # STEP 5: Create groups based on transitions
+    transition_groups = {}
+    for transition in merged['transition'].unique():
+        example_ids = merged[merged['transition'] == transition]['example_id'].unique()
+        # Create readable title
+        parts = transition.split('_to_')
+        group_title = f"{parts[0].replace('_', ' ').title()} → {parts[1].replace('_', ' ').title()}"
+        transition_groups[transition] = (example_ids, group_title)
+    
+    # STEP 6: Create heatmaps for both no_cot and cot using transition-based groups
+    for cot_type in ['no_cot', 'cot']:
+        case_id = f"{condition}_{cot_type}"
+        sas_file = pair[cot_type]['sas']
+        sas_df = pd.read_csv(sas_file)
+        
+        print(f"\nCreating heatmaps for: {case_names[case_id]}")
+        
+        for transition, (example_ids, group_title) in transition_groups.items():
+            if len(example_ids) == 0:
+                print(f"  Skipping {transition} - no examples")
+                continue
+            
+            # Filter SAS data to only these example_ids
+            group_sas = sas_df[sas_df['example_id'].isin(example_ids)]
+            
+            if len(group_sas) == 0:
+                print(f"  Warning: No SAS data found for {transition}")
+                continue
+            
+            # Create pivot table for heatmap
+            sas_matrix = group_sas.groupby(['layer', 'head'])['nas'].mean().unstack()
+            
+            # Create descriptive title and filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            title = f'{group_title} - {case_names[case_id]}'
+            # Clean up transition name for filename
+            transition_clean = transition.replace('_to_', '_TO_')
+            output_path = f'figures/sas_heatmap_{case_id}_{transition_clean}_{timestamp}.png'
+            
+            create_heatmap(sas_matrix, title, output_path, 'Average SAS')
+
+print("\n" + "="*60)
+print("All heatmaps generated successfully!")
+print("="*60)
