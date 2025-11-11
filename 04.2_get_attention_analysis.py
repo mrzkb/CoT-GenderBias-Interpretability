@@ -4,7 +4,6 @@ import seaborn as sns
 import os
 from datetime import datetime
 
-
 ######## Modifications to separate prompts based on CoT change
 
 def create_heatmap(sas_matrix, title, output_path, cbar_label):
@@ -161,6 +160,101 @@ for pair in case_pairs:
             
             create_heatmap(sas_matrix, title, output_path, 'Average SAS')
 
-print("\n" + "="*60)
-print("All heatmaps generated successfully!")
-print("="*60)
+    # STEP 7: For each heatmap, identify top heads from no_cot and track their values
+    print(f"\n{'='*60}")
+    print(f"Creating CSV with top heads for {condition}")
+    print(f"{'='*60}")
+    
+    for group_name, (example_ids, group_title) in transition_groups.items():
+        if len(example_ids) == 0:
+            continue
+        
+        # Get no_cot SAS for this group
+        group_no_cot_sas = no_cot_sas[no_cot_sas['example_id'].isin(example_ids)]
+        group_cot_sas = cot_sas[cot_sas['example_id'].isin(example_ids)]
+        
+        # Calculate average SAS per head for no_cot
+        no_cot_avg = group_no_cot_sas.groupby(['layer', 'head'])['nas'].mean().reset_index()
+        no_cot_avg.columns = ['layer', 'head', 'avg_nas']
+        
+        # Top 10 by absolute SAS
+        no_cot_avg['abs_nas'] = no_cot_avg['avg_nas'].abs()
+        top_10_abs = no_cot_avg.nlargest(10, 'abs_nas')[['layer', 'head', 'avg_nas']]
+        
+        # Top 5 most positive (stereotypical)
+        top_5_pos = no_cot_avg.nlargest(5, 'avg_nas')[['layer', 'head', 'avg_nas']]
+        
+        # Top 5 most negative (anti-stereotypical)
+        top_5_neg = no_cot_avg.nsmallest(5, 'avg_nas')[['layer', 'head', 'avg_nas']]
+        
+        # Create rows for CSV
+        csv_rows = []
+        
+        # Add top 10 absolute
+        for _, row in top_10_abs.iterrows():
+            layer, head = int(row['layer']), int(row['head'])
+            no_cot_val = row['avg_nas']
+            
+            # Get corresponding cot value
+            cot_val = group_cot_sas[
+                (group_cot_sas['layer'] == layer) & 
+                (group_cot_sas['head'] == head)
+            ]['nas'].mean()
+            
+            csv_rows.append({
+                'case': 'top_10_absolute',
+                'layer': layer,
+                'head': head,
+                'without_cot': no_cot_val,
+                'cot': cot_val,
+                'change': cot_val - no_cot_val
+            })
+        
+        # Add top 5 positive (stereotypical)
+        for _, row in top_5_pos.iterrows():
+            layer, head = int(row['layer']), int(row['head'])
+            no_cot_val = row['avg_nas']
+            
+            cot_val = group_cot_sas[
+                (group_cot_sas['layer'] == layer) & 
+                (group_cot_sas['head'] == head)
+            ]['nas'].mean()
+            
+            csv_rows.append({
+                'case': 'top_5_stereotypical',
+                'layer': layer,
+                'head': head,
+                'without_cot': no_cot_val,
+                'cot': cot_val,
+                'change': cot_val - no_cot_val
+            })
+        
+        # Add top 5 negative (anti-stereotypical)
+        for _, row in top_5_neg.iterrows():
+            layer, head = int(row['layer']), int(row['head'])
+            no_cot_val = row['avg_nas']
+            
+            cot_val = group_cot_sas[
+                (group_cot_sas['layer'] == layer) & 
+                (group_cot_sas['head'] == head)
+            ]['nas'].mean()
+            
+            csv_rows.append({
+                'case': 'top_5_anti_stereotypical',
+                'layer': layer,
+                'head': head,
+                'without_cot': no_cot_val,
+                'cot': cot_val,
+                'change': cot_val - no_cot_val
+            })
+        
+        # Create DataFrame and save
+        csv_df = pd.DataFrame(csv_rows)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        csv_path = f'figures/top_heads_{condition}_{group_name}_{timestamp}.csv'
+        csv_df.to_csv(csv_path, index=False)
+        print(f"Saved: {csv_path}")
+
+# print("\n" + "="*60)
+# print("All heatmaps generated successfully!")
+# print("="*60)

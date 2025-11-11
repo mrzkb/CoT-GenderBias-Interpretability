@@ -4,7 +4,7 @@
 #SBATCH --error=logs/llama8b_error_%j.txt
 #SBATCH --mem=32G # More GB due to attention monitoring
 #SBATCH --gres=gpu:32gb:1
-#SBATCH --time=02:00:00 # 1 hours, should be enough!
+#SBATCH --time=00:10:00 # 1 hours, should be enough!
 
 MODEL_PATH=$1
 MODEL_NAME=$2
@@ -31,12 +31,12 @@ source ~/venvs/bbq310/bin/activate
 
 # Only pass sample_size if it's provided
 if [ -n "$SAMPLE_SIZE" ]; then
-    python 02.4_HERO.py \
+    python 02.3_HERO.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME" \
         --sample_size "$SAMPLE_SIZE"
 else
-    python 02.4_HERO.py \
+    python 02.3_HERO.py \
         --model_path "$MODEL_PATH" \
         --model_name "$MODEL_NAME"
 fi

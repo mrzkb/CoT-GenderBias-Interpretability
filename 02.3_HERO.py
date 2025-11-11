@@ -132,8 +132,8 @@ def process_dataset(input_filename, model, tokenizer, model_name, sample_size):
     # output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
     # output_path = f'data/stereo/{output_filename}'
 
-    output_filename = input_filename.replace('prompts_crowspairs_', f'{model_name}_responses_gender_')
-    output_path = f'data/crows/{output_filename}'
+    output_filename = input_filename.replace('prompts_stereoset_', f'{model_name}_responses_gender_')
+    output_path = f'data/{output_filename}'
     
     print("\n" + "=" * 60)
     print(f"Processing: {dataset_name}")
@@ -180,15 +180,15 @@ def main():
 
     print("Model successfully accessed from cluster.")
 
-    # datasets = [
-    #     'prompts_stereoset_cot.csv',
-    #     'prompts_stereoset_no_cot.csv',
-    # ]
-
     datasets = [
-        'prompts_crowspairs_cot.csv',
-        'prompts_crowspairs_no_cot.csv',
+        'stereo/prompts_stereoset_cot_with_unk.csv',
+        'stereo/prompts_stereoset_no_cot_with_unk.csv',
     ]
+
+    # datasets = [
+    #     'prompts_crowspairs_cot.csv',
+    #     'prompts_crowspairs_no_cot.csv',
+    # ]
     
     # Process each dataset
     for dataset in datasets:
