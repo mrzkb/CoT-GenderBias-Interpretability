@@ -157,29 +157,16 @@ def clean_stereoset(prompt_df, unk):
                     }
                     df_clean = pd.concat([df_clean, pd.DataFrame([new_row])], ignore_index=True)
             #
+    unk_tag = 'unk' if unk else 'nounk'
     print(f"Skipped {skip_count} rows with multiple blanks.")
-    out_path = "data/stereo/prompts_stereoset_ALL_COMBINATIONS.csv"
+    out_path = f"data/stereo/prompts_stereoset_ALL_COMBINATIONS_{unk_tag}.csv"
     df_clean.to_csv(out_path, index=False)
     print(f"Saved cleaned data to {out_path}")
 
-
-    # --- Dynamic file naming ---
-    #cot_tag = CoT_type
-    #unk_tag = "with_unk" if unk else "no_unk"
-    #debias_tag = debias_type
-    #out_path = f"data/stereo/prompts_stereoset_{cot_tag}_{unk_tag}_{debias_tag}.csv"
-    #
-CoT_variants = ['standard', 'longer', 'supervised','bias_specific','none']
-debias_instructs = ['ICL','instruct','gender_sample','race_sample','none']
-
-
 #CoT
 clean_stereoset(df, unk = True)
-clean_stereoset(df,True, True)
+clean_stereoset(df,unk = False)
 
-#NoCoT
-clean_stereoset(df,False, False)
-clean_stereoset(df,False, True)
 
 
 
