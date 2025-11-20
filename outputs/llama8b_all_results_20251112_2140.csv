@@ -1,0 +1,9 @@
+case,total,p_ster,p_antister,p_unknown,source_file
+bbq_ambig_cot_unknown,5,0.0,0.0,100.0,llama8b_soapbox_ambig_cot_unknown_1112_2122.csv
+bbq_ambig_cot_no_unknown,5,0.0,0.0,100.0,llama8b_soapbox_ambig_cot_unknown_1112_2122.csv
+bbq_ambig_no_cot_unknown,5,40.0,40.0,20.0,llama8b_soapbox_ambig_no_cot_unknown_1112_2120.csv
+bbq_ambig_no_cot_no_unknown,5,40.0,40.0,20.0,llama8b_soapbox_ambig_no_cot_unknown_1112_2120.csv
+bbq_disambig_cot_unknown,5,60.0,20.0,20.0,llama8b_soapbox_disambig_cot_unknown_1112_2122.csv
+bbq_disambig_cot_no_unknown,5,60.0,20.0,20.0,llama8b_soapbox_disambig_cot_unknown_1112_2122.csv
+bbq_disambig_no_cot_unknown,5,80.0,20.0,0.0,llama8b_soapbox_disambig_no_cot_unknown_1112_2121.csv
+bbq_disambig_no_cot_no_unknown,5,80.0,20.0,0.0,llama8b_soapbox_disambig_no_cot_unknown_1112_2121.csv

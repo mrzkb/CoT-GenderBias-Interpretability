@@ -1,0 +1,10 @@
+pair,total,p_bias_to_bias,p_bias_to_antister,p_bias_to_unknown,p_antister_to_bias,p_antister_to_antister,p_antister_to_unknown,p_unknown_to_bias,p_unknown_to_antister,p_unknown_to_unknown
+bbq_disambig_unknown,200,35.5,8.5,5.5,5.0,30.0,4.5,3.5,3.5,4.0
+bbq_disambig_no_unknown,200,41.0,14.5,,11.0,33.5,,,,
+bbq_ambig_unknown,200,12.0,6.0,24.0,6.0,6.5,14.0,3.5,8.0,20.0
+bbq_ambig_no_unknown,200,27.0,29.0,,23.5,20.5,,,,
+crows_unknown,127,23.62,7.87,11.81,5.51,9.45,12.6,6.3,6.3,16.54
+crows_no_unknown,127,44.09,18.11,,15.75,22.05,,,,
+stereo_unknown,255,38.43,10.98,10.59,11.76,10.2,2.35,7.84,3.14,4.71
+stereo_no_unknown,255,48.63,17.65,,14.12,19.61,,,,
+mina_unknown,208,10.1,4.81,4.33,5.29,4.33,5.29,16.83,9.62,39.42

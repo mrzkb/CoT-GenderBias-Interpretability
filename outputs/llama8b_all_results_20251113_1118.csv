@@ -1,0 +1,17 @@
+case,total,p_ster,p_antister,p_unknown,source_file
+bbq_disambig_no_cot_unknown,200,49.5,39.5,11.0,llama8b_soapbox_disambig_no_cot_unknown_1113_1008.csv
+bbq_disambig_cot_unknown,200,44.0,42.0,14.0,llama8b_soapbox_disambig_cot_unknown_1113_1059.csv
+bbq_disambig_no_cot_no_unknown,200,49.5,39.5,11.0,llama8b_soapbox_disambig_no_cot_unknown_1113_1008.csv
+bbq_disambig_cot_no_unknown,200,44.0,42.0,14.0,llama8b_soapbox_disambig_cot_unknown_1113_1059.csv
+bbq_ambig_no_cot_unknown,200,42.0,26.5,31.5,llama8b_soapbox_ambig_no_cot_unknown_1113_0944.csv
+bbq_ambig_cot_unknown,200,21.5,20.5,58.0,llama8b_soapbox_ambig_cot_unknown_1113_1034.csv
+bbq_ambig_no_cot_no_unknown,200,42.0,26.5,31.5,llama8b_soapbox_ambig_no_cot_unknown_1113_0944.csv
+bbq_ambig_cot_no_unknown,200,21.5,20.5,58.0,llama8b_soapbox_ambig_cot_unknown_1113_1034.csv
+crows_no_cot_unknown,100,3.0,94.0,3.0,llama8b_soapbox_no_cot_unknown_1113_1103.csv
+crows_cot_unknown,5,40.0,20.0,40.0,llama8b_soapbox_cot_unknown_1113_1030.csv
+crows_no_cot_no_unknown,100,3.0,97.0,,llama8b_soapbox_no_cot_no_unknown_1113_1052.csv
+crows_cot_no_unknown,100,57.0,43.0,,llama8b_soapbox_cot_no_unknown_1113_1101.csv
+stereo_no_cot_unknown,100,58.0,27.0,15.0,llama8b_soapbox_no_cot_unknown_1113_1054.csv
+stereo_cot_unknown,100,57.0,24.0,19.0,llama8b_soapbox_cot_unknown_1113_1108.csv
+stereo_no_cot_no_unknown,100,72.0,28.0,,llama8b_soapbox_no_cot_no_unknown_1113_1054.csv
+stereo_cot_no_unknown,100,69.0,31.0,,llama8b_soapbox_cot_no_unknown_1113_1107.csv

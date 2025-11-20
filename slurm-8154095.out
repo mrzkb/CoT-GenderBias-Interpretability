@@ -3,26 +3,26 @@
 
 ==============NVSMI LOG==============
 
-Timestamp                                 : Thu Oct 30 16:02:41 2025
-Driver Version                            : 580.82.07
+Timestamp                                 : Wed Nov 19 14:45:03 2025
+Driver Version                            : 580.65.06
 CUDA Version                              : 13.0
 
 Attached GPUs                             : 1
-GPU 00000000:39:00.0
+GPU 00000000:CA:00.0
     Accounting Mode                       : Enabled
     Accounting Mode Buffer Size           : 4000
     Accounted Processes                   : None
 
-Thu Oct 30 16:02:41 2025       
+Wed Nov 19 14:45:03 2025       
 +-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
+| NVIDIA-SMI 580.65.06              Driver Version: 580.65.06      CUDA Version: 13.0     |
 +-----------------------------------------+------------------------+----------------------+
 | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  Quadro RTX 8000                On  |   00000000:39:00.0 Off |                    0 |
-| 33%   24C    P8             11W /  260W |       1MiB /  46080MiB |      0%      Default |
+|   0  NVIDIA L40S                    On  |   00000000:CA:00.0 Off |                    0 |
+| N/A   24C    P8             34W /  325W |       0MiB /  46068MiB |      0%      Default |
 |                                         |                        |                  N/A |
 +-----------------------------------------+------------------------+----------------------+
 
