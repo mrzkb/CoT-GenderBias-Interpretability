@@ -1,0 +1,10 @@
+model,dataset,transition,n_examples
+llama70b,StereoSet,unknown>unknown,118
+llama70b,StereoSet,unknown>stereo,14
+llama70b,StereoSet,unknown>antistereo,1
+llama70b,StereoSet,stereo>unknown,30
+llama70b,StereoSet,stereo>stereo,55
+llama70b,StereoSet,stereo>antistereo,2
+llama70b,StereoSet,antistereo>unknown,21
+llama70b,StereoSet,antistereo>stereo,4
+llama70b,StereoSet,antistereo>antistereo,10

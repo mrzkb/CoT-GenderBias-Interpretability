@@ -1,0 +1,4 @@
+pair,total,p_S_to_S,p_S_to_A,p_S_to_U,p_A_to_S,p_A_to_A,p_A_to_U,p_U_to_S,p_U_to_A,p_U_to_U
+bbq_disambig_unknown,200,36.0,7.0,5.0,5.0,28.5,4.0,6.5,3.5,4.5
+bbq_ambig_unknown,200,4.5,3.5,17.5,5.5,3.0,15.0,6.5,5.5,39.0
+crows_unknown,262,14.89,19.85,13.74,14.5,10.69,7.63,6.49,4.96,7.25

@@ -1,0 +1,10 @@
+model,dataset,transition,n_examples
+llama8b,Mina,unknown>unknown,322
+llama8b,Mina,unknown>stereo,91
+llama8b,Mina,unknown>antistereo,65
+llama8b,Mina,stereo>unknown,235
+llama8b,Mina,stereo>stereo,711
+llama8b,Mina,stereo>antistereo,159
+llama8b,Mina,antistereo>unknown,118
+llama8b,Mina,antistereo>stereo,166
+llama8b,Mina,antistereo>antistereo,293

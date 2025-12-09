@@ -1,0 +1,10 @@
+model,dataset,transition,n_examples
+qwen32b,Mina,unknown>unknown,1653
+qwen32b,Mina,unknown>stereo,257
+qwen32b,Mina,unknown>antistereo,184
+qwen32b,Mina,stereo>unknown,19
+qwen32b,Mina,stereo>stereo,33
+qwen32b,Mina,stereo>antistereo,7
+qwen32b,Mina,antistereo>unknown,0
+qwen32b,Mina,antistereo>stereo,1
+qwen32b,Mina,antistereo>antistereo,6

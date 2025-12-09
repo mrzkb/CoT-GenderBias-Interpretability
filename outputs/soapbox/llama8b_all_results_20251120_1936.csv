@@ -1,0 +1,5 @@
+case,total,p_ster,p_antister,p_unknown,source_file
+crows_no_cot_unknown,127,33.86,26.77,39.37,llama8b_soapbox_no_cot_unknown_IV3_1120_1820.csv
+crows_cot_unknown,127,33.86,10.24,55.91,llama8b_soapbox_cot_unknown_IV3_1120_1837.csv
+stereo_no_cot_unknown,255,56.08,17.65,26.27,llama8b_soapbox_no_cot_unknown_IV3_1120_1826.csv
+stereo_cot_unknown,255,49.41,24.71,25.88,llama8b_soapbox_cot_unknown_IV3_1120_1901.csv

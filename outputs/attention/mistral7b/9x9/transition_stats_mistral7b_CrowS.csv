@@ -1,0 +1,10 @@
+model,dataset,transition,n_examples
+mistral7b,CrowS,unknown>unknown,153
+mistral7b,CrowS,unknown>stereo,19
+mistral7b,CrowS,unknown>antistereo,9
+mistral7b,CrowS,stereo>unknown,37
+mistral7b,CrowS,stereo>stereo,8
+mistral7b,CrowS,stereo>antistereo,1
+mistral7b,CrowS,antistereo>unknown,28
+mistral7b,CrowS,antistereo>stereo,0
+mistral7b,CrowS,antistereo>antistereo,7

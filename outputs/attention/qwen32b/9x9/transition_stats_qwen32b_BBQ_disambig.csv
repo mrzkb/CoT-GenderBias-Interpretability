@@ -1,0 +1,10 @@
+model,dataset,transition,n_examples
+qwen32b,BBQ_disambig,unknown>unknown,210
+qwen32b,BBQ_disambig,unknown>stereo,96
+qwen32b,BBQ_disambig,unknown>antistereo,98
+qwen32b,BBQ_disambig,stereo>unknown,168
+qwen32b,BBQ_disambig,stereo>stereo,965
+qwen32b,BBQ_disambig,stereo>antistereo,80
+qwen32b,BBQ_disambig,antistereo>unknown,182
+qwen32b,BBQ_disambig,antistereo>stereo,90
+qwen32b,BBQ_disambig,antistereo>antistereo,947
